@@ -16,7 +16,6 @@ export const signUp = (params) => {
  * @param {String} action (In or Out)
  */
 export const saveSignAction = (params) => {
-	console.log(Http.headers);
 	return Http.post(`/userSignAction`, params);
 };
 
