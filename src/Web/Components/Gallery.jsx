@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import RootContext from '../Context/RootContext';
 
 // Gallery
 import { makeStyles } from '@material-ui/core/styles';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
-import ListSubheader from '@material-ui/core/ListSubheader';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
 import UploadButton from './UploadButton';
@@ -95,47 +95,66 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Gallery({tileData}) {
-  const classes = useStyles();
-  const [open, setOpen] = useState(false);
-  const [popupContents, setPopupContents] = useState({img: undefined, size: undefined, lastModified: undefined, title: undefined, author: undefined});
+export default function Gallery() {
+	const classes = useStyles();
+	const { getImagesInfo, getImage } = useContext(RootContext);
+	const [open, setOpen] = useState(false);
+	const [popupContents, setPopupContents] = useState({img: undefined, size: undefined, lastModified: undefined, title: undefined, author: undefined});
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+	const [galleryData, setGalleryData] = useState([{img: undefined, title: undefined, author: undefined}]);
+	
+	// GridListTile이 요구하는 자료 형식에 맞춰 가공
+	const parsingImagesInfo = (data) => {
+		return data.map(index => {
+			return {img: getImage(index.path), size: index.size, lastModified: index.lastModified, title: index.imageName.split('.')[0], author: index.uploader};
+		});
+	}
+	
+	useEffect(() => {
+		async function fetchImagesInfo(){
+			const {data: response} = await getImagesInfo();
+			setGalleryData(parsingImagesInfo(response));
+		}
+		fetchImagesInfo();
+	}, []);
+	
+	const handleClickOpen = () => {
+		setOpen(true);
+	};
 
-  const handleClose = (value) => {
-    setOpen(false);
-  };
+	const handleClose = (value) => {
+		setOpen(false);
+	};
 
-  return (
-  <>
-    <div className={classes.root}>
-	  <UploadButton/>
-	  <GridList cellHeight={180} className={classes.gridList} cols={3} spacing={10}>		
-		{tileData.map((tile) => (
-		  <GridListTile key={tile.img} onClick={() => {
-			  handleClickOpen();
-			  setPopupContents(tile);
-			  }}>
-			<img src={tile.img} alt={tile.title} />
-			<GridListTileBar
-			  title={tile.title}
-			  subtitle={<span>by: {tile.author}</span>}
-			  actionIcon={
-				<IconButton aria-label={`info about ${tile.title}`} className={classes.icon}>
-				  <InfoIcon />
-				</IconButton>
-			  }
-			/>
-		  </GridListTile>
-		))}
-	  </GridList>
-	  <SimpleDialog open={open} onClose={handleClose} contents={popupContents}/>
-    </div>
-	<Box mt={8}>
-        <Copyright />
-      </Box>
-	</>
-  );
+	return (
+		<>
+			<div className={classes.root}>
+				<UploadButton />
+			  
+				<GridList cellHeight={180} className={classes.gridList} cols={3} spacing={10}>		
+					{galleryData.map((tile) => (
+						<GridListTile key={`${tile.title}_${tile.auth}`} onClick={() => {
+							handleClickOpen();
+							setPopupContents(tile);}}>
+							<img src={tile.img} alt={tile.title} />
+							<GridListTileBar
+							title={tile.title}
+							subtitle={<span>by: {tile.author}</span>}
+							actionIcon={
+								<IconButton aria-label={`info about ${tile.title}`} className={classes.icon}>
+									<InfoIcon />
+								</IconButton>
+							}/>
+						</GridListTile>
+					))}
+				</GridList>
+			  
+				<SimpleDialog open={open} onClose={handleClose} contents={popupContents}/>
+			</div>
+			
+			<Box mt={8}>
+				<Copyright />
+			</Box>
+		</>
+	);
 }

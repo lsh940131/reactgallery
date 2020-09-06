@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import RootContext from '../../Context/RootContext';
-import { Route , withRouter} from 'react-router-dom';
+import { withRouter} from 'react-router-dom';
 
 import SignHistoryGrid from '../../Components/SignHistoryGrid';
 
