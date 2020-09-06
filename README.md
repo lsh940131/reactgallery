@@ -1,2 +1,1 @@
-# reactgallery
-react gallery
+react gallery web
